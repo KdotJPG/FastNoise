@@ -34,19 +34,33 @@
 #include <algorithm>
 #include <random>
 
-const FN_DECIMAL GRAD_X[] =
+static const FN_DECIMAL SQRT3 = FN_DECIMAL(1.7320508075688772935274463415059);
+
+const FN_DECIMAL GRAD_2D_X[] =
+{
+	//1 + SQRT2, -1 - SQRT2, 1 + SQRT2, -1 - SQRT2, 1, -1, 1, -1
+	SQRT3, SQRT3, 2, 1, -1, 0, -SQRT3, -SQRT3, -2, -1, 1, 0
+};
+
+const FN_DECIMAL GRAD_2D_Y[] =
+{
+	//1, 1, -1, -1, 1 + SQRT2, 1 + SQRT2, -1 - SQRT2, -1 - SQRT2
+	1, -1, 0, SQRT3, SQRT3, 2, -1, 1, 0, -SQRT3, -SQRT3, -2
+};
+
+const FN_DECIMAL GRAD_3D_X[] =
 {
 	1, -1, 1, -1,
 	1, -1, 1, -1,
 	0, 0, 0, 0
 };
-const FN_DECIMAL GRAD_Y[] =
+const FN_DECIMAL GRAD_3D_Y[] =
 {
 	1, 1, -1, -1,
 	0, 0, 0, 0,
 	1, -1, 1, -1
 };
-const FN_DECIMAL GRAD_Z[] =
+const FN_DECIMAL GRAD_3D_Z[] =
 {
 	0, 0, 0, 0,
 	1, 1, -1, -1,
@@ -313,13 +327,13 @@ FN_DECIMAL FastNoise::GradCoord2D(unsigned char offset, int x, int y, FN_DECIMAL
 {
 	unsigned char lutPos = Index2D_12(offset, x, y);
 
-	return xd*GRAD_X[lutPos] + yd*GRAD_Y[lutPos];
+	return xd*GRAD_2D_X[lutPos] + yd*GRAD_2D_Y[lutPos];
 }
 FN_DECIMAL FastNoise::GradCoord3D(unsigned char offset, int x, int y, int z, FN_DECIMAL xd, FN_DECIMAL yd, FN_DECIMAL zd) const
 {
 	unsigned char lutPos = Index3D_12(offset, x, y, z);
 
-	return xd*GRAD_X[lutPos] + yd*GRAD_Y[lutPos] + zd*GRAD_Z[lutPos];
+	return xd*GRAD_3D_X[lutPos] + yd*GRAD_3D_Y[lutPos] + zd*GRAD_3D_Z[lutPos];
 }
 FN_DECIMAL FastNoise::GradCoord4D(unsigned char offset, int x, int y, int z, int w, FN_DECIMAL xd, FN_DECIMAL yd, FN_DECIMAL zd, FN_DECIMAL wd) const
 {
@@ -872,7 +886,7 @@ FN_DECIMAL FastNoise::SinglePerlin(unsigned char offset, FN_DECIMAL x, FN_DECIMA
 	FN_DECIMAL yf0 = Lerp(xf00, xf10, ys);
 	FN_DECIMAL yf1 = Lerp(xf01, xf11, ys);
 
-	return Lerp(yf0, yf1, zs);
+	return FN_DECIMAL(0.964921414852142333984375) * Lerp(yf0, yf1, zs);
 }
 
 FN_DECIMAL FastNoise::GetPerlinFractal(FN_DECIMAL x, FN_DECIMAL y) const
@@ -984,7 +998,7 @@ FN_DECIMAL FastNoise::SinglePerlin(unsigned char offset, FN_DECIMAL x, FN_DECIMA
 	FN_DECIMAL xf0 = Lerp(GradCoord2D(offset, x0, y0, xd0, yd0), GradCoord2D(offset, x1, y0, xd1, yd0), xs);
 	FN_DECIMAL xf1 = Lerp(GradCoord2D(offset, x0, y1, xd0, yd1), GradCoord2D(offset, x1, y1, xd1, yd1), xs);
 
-	return Lerp(xf0, xf1, ys);
+	return FN_DECIMAL(0.7285516153992643) * Lerp(xf0, xf1, ys);
 }
 
 // Simplex Noise
@@ -1167,7 +1181,7 @@ FN_DECIMAL FastNoise::SingleSimplex(unsigned char offset, FN_DECIMAL x, FN_DECIM
 		n3 = t*t*GradCoord3D(offset, i + 1, j + 1, k + 1, x3, y3, z3);
 	}
 
-	return 32 * (n0 + n1 + n2 + n3);
+	return FN_DECIMAL(32.69588470458984375) * (n0 + n1 + n2 + n3);
 }
 
 FN_DECIMAL FastNoise::GetSimplexFractal(FN_DECIMAL x, FN_DECIMAL y) const
@@ -1268,7 +1282,6 @@ FN_DECIMAL FastNoise::GetSimplex(FN_DECIMAL x, FN_DECIMAL y) const
 //static const FN_DECIMAL F2 = 1 / FN_DECIMAL(2);
 //static const FN_DECIMAL G2 = 1 / FN_DECIMAL(4);
 
-static const FN_DECIMAL SQRT3 = FN_DECIMAL(1.7320508075688772935274463415059);
 static const FN_DECIMAL F2 = FN_DECIMAL(0.5) * (SQRT3 - FN_DECIMAL(1.0));
 static const FN_DECIMAL G2 = (FN_DECIMAL(3.0) - SQRT3) / FN_DECIMAL(6.0);
 
@@ -1326,7 +1339,7 @@ FN_DECIMAL FastNoise::SingleSimplex(unsigned char offset, FN_DECIMAL x, FN_DECIM
 		n2 = t*t*GradCoord2D(offset, i + 1, j + 1, x2, y2);
 	}
 
-	return 70 * (n0 + n1 + n2);
+	return FN_DECIMAL(49.918426513671875) * (n0 + n1 + n2);
 }
 
 FN_DECIMAL FastNoise::GetSimplex(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL z, FN_DECIMAL w) const
@@ -1430,7 +1443,7 @@ FN_DECIMAL FastNoise::SingleSimplex(unsigned char offset, FN_DECIMAL x, FN_DECIM
 		n4 = t * t * GradCoord4D(offset, i + 1, j + 1, k + 1, l + 1, x4, y4, z4, w4);
 	}
 
-	return 27 * (n0 + n1 + n2 + n3 + n4);
+	return FN_DECIMAL(27.589978084196566) * (n0 + n1 + n2 + n3 + n4);
 }
 
 // Cubic Noise
